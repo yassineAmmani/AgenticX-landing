@@ -15,6 +15,7 @@ interface StartTrialDialogProps {
 const StartTrialDialog = ({ open, onOpenChange }: StartTrialDialogProps) => {
   const { t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -23,14 +24,40 @@ const StartTrialDialog = ({ open, onOpenChange }: StartTrialDialogProps) => {
     website: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onOpenChange(false);
-      setFormData({ email: "", phone: "", company: "", businessType: "", website: "" });
-    }, 3000);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: "6d7983a6-117a-457d-b327-39dfecfc6320",
+          subject: "New Trial Request - AgenticX",
+          from_name: "AgenticX Landing Page",
+          ...formData,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          onOpenChange(false);
+          setFormData({ email: "", phone: "", company: "", businessType: "", website: "" });
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -100,8 +127,8 @@ const StartTrialDialog = ({ open, onOpenChange }: StartTrialDialogProps) => {
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 />
               </div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent">
-                {t("startTrial.submit")}
+              <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent" disabled={isLoading}>
+                {isLoading ? "Sending..." : t("startTrial.submit")}
               </Button>
             </form>
           </>

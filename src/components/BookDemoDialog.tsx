@@ -15,6 +15,7 @@ interface BookDemoDialogProps {
 const BookDemoDialog = ({ open, onOpenChange }: BookDemoDialogProps) => {
   const { t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,14 +23,41 @@ const BookDemoDialog = ({ open, onOpenChange }: BookDemoDialogProps) => {
     role: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onOpenChange(false);
-      setFormData({ name: "", email: "", phone: "", role: "" });
-    }, 3000);
+    setIsLoading(true);
+
+    try {
+      const form = e.target as HTMLFormElement;
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: "6d7983a6-117a-457d-b327-39dfecfc6320",
+          subject: "New Demo Request - AgenticX",
+          from_name: "AgenticX Landing Page",
+          ...formData,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          onOpenChange(false);
+          setFormData({ name: "", email: "", phone: "", role: "" });
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -87,8 +115,8 @@ const BookDemoDialog = ({ open, onOpenChange }: BookDemoDialogProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent">
-                {t("bookDemo.submit")}
+              <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent" disabled={isLoading}>
+                {isLoading ? "Sending..." : t("bookDemo.submit")}
               </Button>
             </form>
           </>
