@@ -32,9 +32,9 @@ const Hero = () => {
 
           {/* Main Headline */}
           <h2 className="text-5xl md:text-7xl font-bold text-foreground leading-tight">
-            {t("hero.title").split("Customer Experience")[0]}
+            {t("hero.title")}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {t("hero.title").includes("Customer Experience") ? "Customer Experience" : t("hero.title").split(" ").slice(-2).join(" ")}
+              {t("hero.title-highlighted")}
             </span>
           </h2>
 
